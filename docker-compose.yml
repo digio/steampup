@@ -1,0 +1,19 @@
+version: "3.8"
+services:
+  steampipe:
+    image: turbot/steampipe
+    ports:
+      - "9193:9193"
+    volumes:
+      - "$HOME/sp/config:/home/steampipe/.steampipe/config"
+      - "steampipe_data:/home/steampipe/.steampipe/db/14.2.0/data"
+      - "steampipe_internal:/home/steampipe/.steampipe/internal"
+      - "steampipe_logs:/home/steampipe/.steampipe/logs"
+      - "steampipe_plugins:/home/steampipe/.steampipe/plugins"
+    command: ["service", "start", "--foreground"]
+volumes:
+  steampipe_data:
+  steampipe_internal:
+  steampipe_logs:
+  steampipe_plugins:
+
