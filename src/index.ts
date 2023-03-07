@@ -4,28 +4,9 @@
 import * as dotenv from 'dotenv'
 import { PromptTemplate } from "langchain/prompts";
 import { OpenAI } from "langchain";
+import pkg from 'pg';
+const { Client } = pkg;
 dotenv.config()
-
-// import pkg from 'pg';
-// const { Client } = pkg;
-// const client = new Client({
-//   connectionString: process.env.DATABASE_URL,
-// });
-// await client.connect();
-//
-// const res = await client.query(`
-// select
-//   user_login,
-//   starred_at
-// from
-//   github_stargazer
-// where
-//   repository_full_name = 'simoncollins/skia-canvaskit-vite'
-// order by
-//   starred_at desc;
-// `)
-// console.log(res.rows)
-// await client.end()
 
 import { HNSWLib } from "langchain/vectorstores";
 import { OpenAIEmbeddings } from "langchain/embeddings";
@@ -67,8 +48,7 @@ function getVectorStore() {
 
 const vectorStore = await getVectorStore();
 
-const request = "Enumere los observadores de estrellas del repositorio simoncollins/skia-canvaskit-vite";
-// const request = "List the stargazers of repository simoncollins/skia-canvaskit-vite";
+const request = "List the stargazers of repository simoncollins/skia-canvaskit-vite";
 
 const similarQueries = await vectorStore.similaritySearch(request, 2);
 
@@ -76,7 +56,7 @@ const similarQueries = await vectorStore.similaritySearch(request, 2);
 const context = similarQueries.map((d) => d.pageContent)
   .reduce((acc, d) => `${acc}\n\n${d}`, "").trim();
 
-console.log("context:", context);
+// console.log("context:", context);
 
 const model = new OpenAI({ temperature: 0.9 });
 
@@ -96,8 +76,17 @@ const prompt = template.format({
   request
 });
 
-console.log(prompt);
+// console.log(prompt);
 
-const res = await model.call(prompt);
+const sql = await model.call(prompt);
 
-console.log(res);
+console.log("SQL:\n", sql);
+
+const client = new Client({
+  connectionString: process.env.DATABASE_URL,
+});
+await client.connect();
+
+const result = await client.query(sql)
+console.log(result.rows)
+await client.end()
