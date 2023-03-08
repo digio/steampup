@@ -7,6 +7,7 @@ import { OpenAI } from "langchain";
 import pkg from 'pg';
 import prompts from 'prompts';
 import emoji from 'node-emoji';
+import ora from 'ora';
 import { HNSWLib } from "langchain/vectorstores";
 import { OpenAIEmbeddings } from "langchain/embeddings";
 
@@ -84,13 +85,12 @@ async function buildPrompt(request: string, vectorStore: HNSWLib) {
 }
 
 const request = await getRequest();
+const spinner = ora(emoji.emojify(':dog: Sniffing out the answer')).start();
 
 const prompt = await buildPrompt(request, vectorStore);
 
 const model = new OpenAI({ temperature: 0.9 });
 const sql = await model.call(prompt);
-
-console.log("SQL:\n", sql);
 
 const client = new Client({
   connectionString: process.env.DATABASE_URL,
@@ -100,6 +100,8 @@ await client.connect();
 const result = await client.query(sql)
 
 const tableData = [Object.keys(result.rows[0]), ...result.rows.map(Object.values)];
+
+spinner.succeed(emoji.emojify(':dog: Done!'));
 
 console.log(table(tableData));
 
