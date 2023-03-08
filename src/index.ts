@@ -5,13 +5,13 @@ import * as dotenv from 'dotenv'
 import { PromptTemplate } from "langchain/prompts";
 import { OpenAI } from "langchain";
 import pkg from 'pg';
-const { Client } = pkg;
 import prompts from 'prompts';
 import emoji from 'node-emoji';
-dotenv.config()
-
 import { HNSWLib } from "langchain/vectorstores";
 import { OpenAIEmbeddings } from "langchain/embeddings";
+
+const { Client } = pkg;
+dotenv.config()
 
 const embeddings = new OpenAIEmbeddings();
 
@@ -50,43 +50,44 @@ function getVectorStore() {
 
 const vectorStore = await getVectorStore();
 
-const response = await prompts({
-  type: 'text',
-  name: 'request',
-  message: emoji.emojify(':dog: Woof do you want?')
-});
+async function getRequest() {
+  const response = await prompts({
+    type: 'text',
+    name: 'request',
+    message: emoji.emojify(':dog: Woof do you want?')
+  });
 
-const request = response.request;
-// const request = "List the stargazers of repository simoncollins/skia-canvaskit-vite, just the login and the time they starred it, most recent first";
+  return response.request;
+}
 
-const similarQueries = await vectorStore.similaritySearch(request, 2);
+async function buildPrompt(request: string, vectorStore: HNSWLib) {
+  const similarQueries = await vectorStore.similaritySearch(request, 2);
 
-// join the pageContent with the similar queries
-const context = similarQueries.map((d) => d.pageContent)
-  .reduce((acc, d) => `${acc}\n\n${d}`, "").trim();
+  const context = similarQueries.map((d) => d.pageContent)
+    .reduce((acc, d) => `${acc}\n\n${d}`, "").trim();
 
-// console.log("context:", context);
-
-const model = new OpenAI({ temperature: 0.9 });
-
-const template = new PromptTemplate({
-  template:
-    `Create an appropriate steampipe SQL query given the following examples:
+  const template = new PromptTemplate({
+    template:
+      `Create an appropriate steampipe SQL query given the following examples:
     
     {context}
     
     Request: {request}
     SQL:`,
-  inputVariables: ["context", "request"],
-});
+    inputVariables: ["context", "request"],
+  });
 
-const prompt = template.format({
-  context,
-  request
-});
+  return template.format({
+    context,
+    request
+  });
+}
 
-// console.log(prompt);
+const request = await getRequest();
 
+const prompt = await buildPrompt(request, vectorStore);
+
+const model = new OpenAI({ temperature: 0.9 });
 const sql = await model.call(prompt);
 
 console.log("SQL:\n", sql);
@@ -98,9 +99,8 @@ await client.connect();
 
 const result = await client.query(sql)
 
-// create a table with the results whose columns are the keys of the first row
-const data = [Object.keys(result.rows[0]), ...result.rows.map(Object.values)];
+const tableData = [Object.keys(result.rows[0]), ...result.rows.map(Object.values)];
 
-console.log(table(data));
+console.log(table(tableData));
 
 await client.end()
