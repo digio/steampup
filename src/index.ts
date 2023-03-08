@@ -1,11 +1,13 @@
 #!/usr/bin/env npx ts-node --esm
 
-
+import { table } from 'table';
 import * as dotenv from 'dotenv'
 import { PromptTemplate } from "langchain/prompts";
 import { OpenAI } from "langchain";
 import pkg from 'pg';
 const { Client } = pkg;
+import prompts from 'prompts';
+import emoji from 'node-emoji';
 dotenv.config()
 
 import { HNSWLib } from "langchain/vectorstores";
@@ -48,7 +50,14 @@ function getVectorStore() {
 
 const vectorStore = await getVectorStore();
 
-const request = "List the stargazers of repository simoncollins/skia-canvaskit-vite";
+const response = await prompts({
+  type: 'text',
+  name: 'request',
+  message: emoji.emojify(':dog: Woof do you want?')
+});
+
+const request = response.request;
+// const request = "List the stargazers of repository simoncollins/skia-canvaskit-vite, just the login and the time they starred it, most recent first";
 
 const similarQueries = await vectorStore.similaritySearch(request, 2);
 
@@ -88,5 +97,10 @@ const client = new Client({
 await client.connect();
 
 const result = await client.query(sql)
-console.log(result.rows)
+
+// create a table with the results whose columns are the keys of the first row
+const data = [Object.keys(result.rows[0]), ...result.rows.map(Object.values)];
+
+console.log(table(data));
+
 await client.end()
