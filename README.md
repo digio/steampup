@@ -8,7 +8,8 @@ It uses [Steampipe](https://steampipe.io) to query Github stars via its Github p
 
 1. Create an OpenAI API key. [Create a free account](https://platform.openai.com/) and then [create your
    API key](https://platform.openai.com/docs/quickstart/build-your-application).
-2. Create a Github Personal access token with read access to Github stars.
+2. Create a fine grained Github Personal access token with read access to public repos.
+   ![Image](./github-token.png)
 3. Make sure you have docker installed and running along with docker-compose.
 
 ## Installation
