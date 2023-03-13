@@ -1,11 +1,19 @@
 import emoji from 'node-emoji';
 import prompts from 'prompts';
 import { $ } from 'zx';
+import ora from "ora";
 
 $.verbose = false
 
 // start Steampipe
-await $`docker-compose up -d`
+let spinner = ora(emoji.emojify(':dog: Starting Steampipe')).start();
+try {
+  await $`docker-compose up -d`
+  spinner.succeed(emoji.emojify(':dog: Steampipe started'));
+} catch (e) {
+  spinner.fail(emoji.emojify(':dog: Failed to start Steampipe'));
+  throw e
+}
 
 // grab connection details
 const details = await $`docker-compose exec steampipe steampipe service status --show-password`
@@ -14,7 +22,14 @@ const details = await $`docker-compose exec steampipe steampipe service status -
 const connectionString = /postgres:\/\/steampipe.*\/steampipe/.exec(details.stdout)[0]
 
 // install the Steampipe github plugin
-await $`docker-compose exec steampipe steampipe plugin install github`
+spinner = ora(emoji.emojify(':dog: Installing GitHub plugin')).start();
+try {
+  await $`docker-compose exec steampipe steampipe plugin install github`
+  spinner.succeed(emoji.emojify(':dog: GitHub plugin installed'));
+} catch (e) {
+  spinner.fail(emoji.emojify(':dog: Failed to install GitHub plugin'));
+  throw e
+}
 
 // prompt for github token
 const response = await prompts(
@@ -41,12 +56,14 @@ const githubConfig =
 }
 `
 
-await fs.outputFile(`${path.join(os.homedir(), 'sp/config/github.spck')}`, githubConfig)
+await fs.outputFile(`${path.join(os.homedir(), 'sp/config/github.spc')}`, githubConfig)
 
 const envConfig =
 `DATABASE_URL="${connectionString}"
 OPENAI_API_KEY="${response.openaiApiKey}"
 `
 
-await fs.outputFile(`${path.join(process.cwd(), '.envk')}`, envConfig)
+await fs.outputFile(`${path.join(process.cwd(), '.env')}`, envConfig)
+
+console.log(emoji.emojify(':dog: Setup complete! Run `npm run steampup` to get started!'))
 

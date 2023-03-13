@@ -4,7 +4,7 @@
   "description": "Query Steampipe data sources with natural language",
   "type": "module",
   "scripts": {
-    "start": "ts-node-esm --require dotenv/config --project tsconfig.json src/index.ts",
+    "steampup": "ts-node-esm --require dotenv/config --project tsconfig.json src/index.ts",
     "setup": "zx ./scripts/setup.mjs"
   },
   "author": "Simon Collins",
