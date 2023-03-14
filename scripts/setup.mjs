@@ -16,10 +16,12 @@ try {
 }
 
 // grab connection details
-const details = await $`docker-compose exec steampipe steampipe service status --show-password`
+const details = await $`docker-compose exec --no-TTY steampipe steampipe service status --show-password`
 
 // parse postgres connection string
-const connectionString = /postgres:\/\/steampipe.*\/steampipe/.exec(details.stdout)[0]
+const connectionString = /(postgres:\/\/steampipe.*)\n/.exec(details.stdout)[1]
+
+console.log(connectionString)
 
 // install the Steampipe github plugin
 spinner = ora(emoji.emojify(':dog: Installing GitHub plugin')).start();
@@ -50,9 +52,7 @@ const response = await prompts(
 const githubConfig =
 `connection "github" {
    plugin = "github"
-   options = {
-     token = "${response.githubToken}"
-   }
+   token = "${response.githubToken}"
 }
 `
 
