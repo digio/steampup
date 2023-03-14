@@ -23,3 +23,5 @@ It uses [Steampipe](https://steampipe.io) to query Github stars via its Github p
 
 - `Last five people to star digio/istio-demo`
 - `Everyone who starred both digio/istio-demo and digio/terraform-google-gitlab-runner`
+
+![Image](./steampup.png)
