@@ -1,7 +1,7 @@
 version: "3.8"
 services:
   steampipe:
-    image: turbot/steampipe
+    image: turbot/steampipe:0.19.1
     ports:
       - "9193:9193"
     volumes:

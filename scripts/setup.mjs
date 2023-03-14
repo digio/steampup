@@ -21,8 +21,6 @@ const details = await $`docker-compose exec --no-TTY steampipe steampipe service
 // parse postgres connection string
 const connectionString = /(postgres:\/\/steampipe.*)\n/.exec(details.stdout)[1]
 
-console.log(connectionString)
-
 // install the Steampipe github plugin
 spinner = ora(emoji.emojify(':dog: Installing GitHub plugin')).start();
 try {
