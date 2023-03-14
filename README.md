@@ -18,3 +18,8 @@ It uses [Steampipe](https://steampipe.io) to query Github stars via its Github p
 2. Make sure you have NodeJS installed (version 17 or higher)
 3. Run `npm install` to install the dependencies
 4. Run `npm run setup` and follow the prompts to configure and start the app
+
+# Example requests
+
+- `Last five people to star digio/istio-demo`
+- `Everyone who starred both digio/istio-demo and digio/terraform-google-gitlab-runner`
